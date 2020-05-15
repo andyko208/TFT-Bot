@@ -4,7 +4,7 @@ from discord.ext import commands
 import requests
 from bs4 import BeautifulSoup
 
-TOKEN = 'NzA5MjQzODAzODEwMTM2MDk1.Xr3MnA.HQh4S0j3lsq5vvZ9YuHytvh9tXc'
+TOKEN = 'NzA5MjQzODAzODEwMTM2MDk1.Xr8iHQ.YboJnU6F__StpE792u_nX-rOYNk'
 
 client = commands.Bot(command_prefix = '.')
 
@@ -37,25 +37,41 @@ async def clear(ctx, amount=10):
 
 @client.command()
 async def tft(ctx, *, summoner_name):
-    await ctx.send(f'{summoner_name}님의 롤토체스 최근 10게임의 전적을 가져옵니다. 슝~')
-    page = requests.get(f'https://lolchess.gg/profile/na/{summoner_name}/s3/matches?hl=en-US')
+
+    # request for lolchess.gg page
+    page = requests.get(f'https://lolchess.gg/profile/na/{summoner_name}/s3')
     soup = BeautifulSoup(page.content, "html.parser")
 
-    profile_div = soup.find("div", {"class": "profile__icon"})
-    profile_img = profile_div.find("img")
-    print(profile_img['src'])
-    # profile_items = []
-    # print(profile_div)
-    # for item in profile_div:
-    #     profile_img = item.find("img")
+    # retrive summoner name and region
+    profile_name = soup.find("span", {"class": "profile__summoner__name"})
+    profile_name = profile_name.get_text()
+    profile_name = "".join(profile_name.split())
+    profile_region = soup.find("em", {"class": "profile__summoner__region"})
+    profile_region = profile_region.get_text()
+    profile_name = profile_name.replace(f'{profile_region}', "")
 
-        # if item.img:
-        #     profile_items.append(item['src'])
-        # profile_items.append(item.get_text())
+    # message that bot has started searching
+    await ctx.send(f'{profile_name}[{profile_region}] 님의 롤토체스 최근 10게임의 전적을 가져옵니다. 슝~')
 
-    print('items:')
+    # retrieve summoner's profile icon and tier info
+    profile_icon_div = soup.find("div", {"class": "profile__icon"})
+    profile_icon_img = profile_icon_div.find("img")
+    print(profile_icon_img['src'])
+
+    profile_tier_div = soup.find("div", {"class": "profile__tier__icon"})
+    profile_tier_img = profile_tier_div.find("img")
+    print(profile_tier_img['src'])
+
+    profile_tier_summary_div = soup.find("div", {"class": "profile__tier__summary"})
+    tier_spans = profile_tier_summary_div.find_all("span")
+    tier_info = []
+    for tier_span in tier_spans:
+        tier_info.append(tier_span.get_text())
+    profile_tier = tier_info[0]
+    profile_tier_lp = tier_info[1]
 
 
+    # tft stat info
     match_placement = soup.find_all("div", {"class": "placement"})
     match_mode = soup.find_all("div", {"class": "game-mode"})
     match_length = soup.find_all("div", {"class": "length"})
@@ -73,20 +89,26 @@ async def tft(ctx, *, summoner_name):
     for age in match_age:
         list_age.append(age.get_text())
 
+    # big div that surround whole list
+    # matches_div = soup.find("div", {"class": "profile__match-history-v2__items"})
+    # for match in matches_div:
+
+
+
+
+    # output embed
     embed = discord.Embed(
-        title = f'{summoner_name}',
-        description = 'From the most recent',
+        title = f'{profile_tier} - {profile_tier_lp}',
+        description = 'Five most recent games:',
         colour = discord.Colour.blue()
     )
-    const Discord = require('discord.js');
-    const exampleEmbed = new Discord.MessageEmbed()
-        .attachFiles([profile_img], 'profile_img')
-        .setImage('attachment://profile_img')
-    embed.set_footer(text='This is a footer')
+    embed.set_author(name=f'{profile_name}', icon_url='https:' + profile_icon_img['src'])
     # embed.set_image(url='https://pbs.twimg.com/profile_images/1235620509766701061/0-advR1e_400x400.jpg')
-    embed.set_thumbnail(url='attachment://profile_img')
-    # embed.set_author(name='Author Name',icon_url='https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRvUdp2cYonGeH1Jq8CRlllvxt4eB-0Qkkno8u8gn7vvqXxwAf9&usqp=CAU')
-    for i in range(0, 6):
+
+    # embed.set_thumbnail(url='https://vignette.wikia.nocookie.net/leagueoflegends/images/4/4e/Boots_of_Speed_item.png/revision/latest/scale-to-width-down/40?cb=20171221060501')
+    embed.set_thumbnail(url='https:' + profile_tier_img['src'])
+    embed.set_footer(text='This is a footer')
+    for i in range(0, 5):
         embed.add_field(name='Ranked', value=list_placement[i], inline=False)
         embed.add_field(name='Mode', value=list_mode[i], inline=True)
         embed.add_field(name='Length', value=list_length[i], inline=True)
