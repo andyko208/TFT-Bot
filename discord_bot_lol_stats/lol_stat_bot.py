@@ -4,7 +4,7 @@ from discord.ext import commands
 import requests
 from bs4 import BeautifulSoup
 
-TOKEN = 'NzA5MjQzODAzODEwMTM2MDk1.XrzlDw.F0wwPnw4cTC7C4bdLxTt0L84XY0'
+TOKEN = 'NzA5MjQzODAzODEwMTM2MDk1.Xr3MnA.HQh4S0j3lsq5vvZ9YuHytvh9tXc'
 
 client = commands.Bot(command_prefix = '.')
 
@@ -37,9 +37,25 @@ async def clear(ctx, amount=10):
 
 @client.command()
 async def tft(ctx, *, summoner_name):
-    await ctx.send(f'Searching stats for {summoner_name}')
+    await ctx.send(f'{summoner_name}님의 롤토체스 최근 10게임의 전적을 가져옵니다. 슝~')
     page = requests.get(f'https://lolchess.gg/profile/na/{summoner_name}/s3/matches?hl=en-US')
     soup = BeautifulSoup(page.content, "html.parser")
+
+    profile_div = soup.find("div", {"class": "profile__icon"})
+    profile_img = profile_div.find("img")
+    print(profile_img['src'])
+    # profile_items = []
+    # print(profile_div)
+    # for item in profile_div:
+    #     profile_img = item.find("img")
+
+        # if item.img:
+        #     profile_items.append(item['src'])
+        # profile_items.append(item.get_text())
+
+    print('items:')
+
+
     match_placement = soup.find_all("div", {"class": "placement"})
     match_mode = soup.find_all("div", {"class": "game-mode"})
     match_length = soup.find_all("div", {"class": "length"})
@@ -59,18 +75,22 @@ async def tft(ctx, *, summoner_name):
 
     embed = discord.Embed(
         title = f'{summoner_name}',
-        description = f'Stats for {summoner_name}',
+        description = 'From the most recent',
         colour = discord.Colour.blue()
     )
+    const Discord = require('discord.js');
+    const exampleEmbed = new Discord.MessageEmbed()
+        .attachFiles([profile_img], 'profile_img')
+        .setImage('attachment://profile_img')
     embed.set_footer(text='This is a footer')
-    embed.set_image(url='https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRvUdp2cYonGeH1Jq8CRlllvxt4eB-0Qkkno8u8gn7vvqXxwAf9&usqp=CAU')
-    embed.set_thumbnail(url='https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRvUdp2cYonGeH1Jq8CRlllvxt4eB-0Qkkno8u8gn7vvqXxwAf9&usqp=CAU')
-    embed.set_author(name='Author Name',
-    icon_url='https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRvUdp2cYonGeH1Jq8CRlllvxt4eB-0Qkkno8u8gn7vvqXxwAf9&usqp=CAU')
-    embed.add_field(name='Ranked', value=list_placement[0], inline=True)
-    embed.add_field(name='Mode', value=list_mode[0], inline=True)
-    embed.add_field(name='Length', value=list_length[0], inline=True)
-    embed.add_field(name='Age', value=list_age[0], inline=True)
+    # embed.set_image(url='https://pbs.twimg.com/profile_images/1235620509766701061/0-advR1e_400x400.jpg')
+    embed.set_thumbnail(url='attachment://profile_img')
+    # embed.set_author(name='Author Name',icon_url='https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRvUdp2cYonGeH1Jq8CRlllvxt4eB-0Qkkno8u8gn7vvqXxwAf9&usqp=CAU')
+    for i in range(0, 6):
+        embed.add_field(name='Ranked', value=list_placement[i], inline=False)
+        embed.add_field(name='Mode', value=list_mode[i], inline=True)
+        embed.add_field(name='Length', value=list_length[i], inline=True)
+        embed.add_field(name='Age', value=list_age[i], inline=True)
 
     await ctx.send(embed=embed)
 
