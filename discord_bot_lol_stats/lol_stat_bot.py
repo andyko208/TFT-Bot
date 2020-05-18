@@ -6,8 +6,8 @@ from bs4 import BeautifulSoup
 
 TOKEN = 'NzA5MjQzODAzODEwMTM2MDk1.Xr8iHQ.YboJnU6F__StpE792u_nX-rOYNk'
 
-client = commands.Bot(command_prefix = '.')
-
+client = commands.Bot(command_prefix = '!')
+client.remove_command('help')
 
 @client.event
 async def on_ready():
@@ -34,6 +34,22 @@ async def echo(*args):
 async def clear(ctx, amount=10):
     await ctx.channel.purge(limit=amount)
     await ctx.send('Message deleted.')
+
+# private message to user
+@client.command(pass_context=True)
+async def help(ctx):
+    author = ctx.message.author
+
+    embed = discord.Embed(
+        colour = discord.Colour.orange()
+    )
+
+    embed.set_author(name='Help')
+    embed.add_field(name='.tft <summoner name>', value = 'displays recent tft game stats from "lolchess.gg"', inline=False)
+
+    await ctx.author.send(embed=embed)
+
+
 
 @client.command()
 async def tft(ctx, *, summoner_name):
@@ -94,8 +110,6 @@ async def tft(ctx, *, summoner_name):
     # for match in matches_div:
 
 
-
-
     # output embed
     embed = discord.Embed(
         title = f'{profile_tier} - {profile_tier_lp}',
@@ -103,18 +117,22 @@ async def tft(ctx, *, summoner_name):
         colour = discord.Colour.blue()
     )
     embed.set_author(name=f'{profile_name}', icon_url='https:' + profile_icon_img['src'])
-    # embed.set_image(url='https://pbs.twimg.com/profile_images/1235620509766701061/0-advR1e_400x400.jpg')
+    embed.set_image(url='https://cdn.lolchess.gg/images/tft/champions/set3/malphite.png')
 
     # embed.set_thumbnail(url='https://vignette.wikia.nocookie.net/leagueoflegends/images/4/4e/Boots_of_Speed_item.png/revision/latest/scale-to-width-down/40?cb=20171221060501')
     embed.set_thumbnail(url='https:' + profile_tier_img['src'])
-    embed.set_footer(text='This is a footer')
+    embed.set_footer(text='Click to load more')
+
     for i in range(0, 5):
-        embed.add_field(name='Ranked', value=list_placement[i], inline=False)
+        embed.add_field(name='Ranked', value=list_placement[i], inline=True)
         embed.add_field(name='Mode', value=list_mode[i], inline=True)
         embed.add_field(name='Length', value=list_length[i], inline=True)
         embed.add_field(name='Age', value=list_age[i], inline=True)
 
+    # canvas to make collage of multiple images and display as one image
+
     await ctx.send(embed=embed)
+
 
 
 
@@ -130,26 +148,3 @@ async def tft(ctx, *, summoner_name):
 
 
 client.run(TOKEN)
-
-
-
-# @client.command()
-# async def tft(ctx, *, summoner_name):
-#     # res = requests.get(f'https://lolchess.gg/profile/na/"{summoner_name}"/s3/matches?hl=en-US')
-#     await ctx.send(f'Searching stats for {summoner_name}')
-#     html = urlopen(f'https://lolchess.gg/profile/na/{summoner_name}/s3/matches?hl=en-US')
-#     bsObject = BeautifulSoup(html, "html.parser")
-#     div = bsObject.find('div', {'class':''})
-#     # for meta in bsObject.head.find_all('meta'):
-#     #     print(meta.get('content'))
-#     # spe_div = find(class='profile__match-history-v2')
-#     for tags in bsObject.find_all("div", class_= "placement"):
-#         print('hello')
-#         print(tags.text.strip())
-
-    # soup = BeautifulSoup(html, 'html.parser')
-    # print(soup.find('title'))
-    # title = bsObejct.find('title')
-
-    # for
-    # await ctx.send(bsObject.head.find("div",{"class":"keywords"}).get('content'))
