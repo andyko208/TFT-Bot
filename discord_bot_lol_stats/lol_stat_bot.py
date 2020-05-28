@@ -12,7 +12,7 @@ import io
 # from io import BytesIO
 # from PIL import Image
 
-TOKEN = 'NzA5MjQzODAzODEwMTM2MDk1.Xsyvsw.D-mNAGDbfnqB6yQUPNKEpWwSEZM'
+
 
 g_summoner_name = ""
 
@@ -157,7 +157,7 @@ async def tft(ctx, *, summoner_name):
     await ctx.send(embed=embed)
 
 @client.command()
-async def stat(ctx, *, nth_game):
+async def game(ctx, *, nth_game):
     global g_summoner_name
 
     # if user did not call .tft command beforehand
@@ -175,7 +175,11 @@ async def stat(ctx, *, nth_game):
     list_traits = [[] for i in range (10)]
     list_stars = [[] for i in range (10)]
     list_units = [[] for i in range (10)]
-    list_items = [[] for i in range (10)]
+    # list_items = [[] for i in range (10)]
+    list_items = [{} for i in range (10)]
+
+
+
     index = 0
     for traits in traits_divs:
         trait_imgs = traits.find_all("img")
@@ -188,62 +192,122 @@ async def stat(ctx, *, nth_game):
     for units in units_divs:
         unit_divs = units.find_all("div", {"class": "unit"})
         # print(unit_divs)
+        prev_unit = ""
+        dup_count = 1
         for unit_profile in unit_divs:
-            list_stars[index].append(unit_profile.find_all("img")[0]['src'])
-            list_units[index].append(unit_profile.find_all("img")[1]['src'])
+            stars = unit_profile.find_all("img")[0]['src']
+            list_stars[index].append(stars)
+            unit = unit_profile.find_all("img")[1]['src']
+            list_units[index].append(unit)
             items_list = unit_profile.find("ul")
             items = items_list.find_all("img")
+            temp_item_list = []
             for item in items:
                 if item:
-                    list_items[index].append(item['src'])
+                    temp_item_list.append(item['src'])
+                    # print(item)
+                    # print(index)
+            # taking care of duplicate units
+            print(prev_unit)
+            if prev_unit == unit:
+                unit += str(dup_count)
+                # print(unit)
+                list_items[index][unit] = temp_item_list
+                dup_count += 1
+                prev_unit = unit
+            else:
+                list_items[index][unit] = temp_item_list
+                prev_unit = unit
         index += 1
-    background = Image.new('RGB', (1024, 512), 0)
-    width = 10
+    # print(list_items)
+    background = Image.new('RGB', (1650, 256), 0)
+    width = 20
+    height = 96
+    # height = 10
     nth_game = int(nth_game)
     if nth_game > 10:
         await ctx.send('Cannot go beyond 10.')
 
+    # Synergy
     for list in list_traits[nth_game - 1]:
-        print(list)
+        TRAIT_WIDTH = 34
+        TRAIT_HEIGHT = 34
+
         synergy = Image.open(urllib.request.urlopen('https:' + list))
-        # new_size = (synergy.width * 2, synergy.height * 2)
-        # synergy = synergy.resize(new_size)
-        if width >= 158:
-            width = 0
-        background.paste(synergy, (width, 128))
-        width += synergy.width + 10
-    print(synergy.width)
-    print(synergy.height)
-    start_width = width
+        new_size = (TRAIT_WIDTH, TRAIT_HEIGHT)
+        synergy = synergy.resize(new_size)
+        # when synergy is more than 5
+        if len(list_traits[nth_game - 1]) > 5:
+            print(width)
+            if width >= 240:
+                width = 20
+                height += 44
+            background.paste(synergy, (width, height))
+            width += synergy.width + 10
+        else:
+            height = 111
+            background.paste(synergy, (width, height))
+            width += synergy.width + 10
+    # print("synergy")
+    # print(synergy.width)
+    # print(synergy.height)
+
+    start_width = 272
+    # Stars
     for list in list_stars[nth_game - 1]:
-        print(list)
+        # print(list)
         champ_star = Image.open(urllib.request.urlopen('https:' + list))
-        # new_size = (champ_star.width * 4, champ_star.height * 4)
-        # champ_star = champ_star.resize(new_size)
-        background.paste(champ_star, (width+50, 10))
-        width += champ_star.width + 60
+        new_size = (64, 20)
+
+        champ_star = champ_star.resize(new_size)
+        background.paste(champ_star, (start_width, 0))
+        start_width += 138
+    # print(list_items)
+    print("champ_star")
     print(champ_star.width)
     print(champ_star.height)
-    width = start_width
-    for list in list_units[nth_game - 1]:
-        print(list)
-        champion = Image.open(urllib.request.urlopen('https:' + list))
-        # new_size = (int(champion.width * 1.5), int(champion.height * 2))
-        # champion = champion.resize(new_size)
-        background.paste(champion, (start_width, 70))
-        start_width += champion.width + 40
+
+    start_width = 250
+    for unit_src in list_units[nth_game - 1]:
+        # print(list)
+        last_char = len(unit_src) - 1
+        print(unit_src)
+        if unit_src[last_char] != 'g':
+            unit_src = unit_src[:-1]
+        print(unit_src)
+        champion = Image.open(urllib.request.urlopen('https:' + unit_src))
+        new_size = (128, 128)
+        champion = champion.resize(new_size)
+        background.paste(champion, (start_width, 30))
+        start_width += champion.width + 10
+    print("champion")
     print(champion.width)
     print(champion.height)
 
-    for list in list_items[nth_game - 1]:
-        print(list)
-        item = Image.open(urllib.request.urlopen('https:' + list))
-        # new_size = (int(champion.width * 1.5), int(champion.height * 2))
-        # champion = champion.resize(new_size)
-        background.paste(item, (width, 216))
-        width += item.width + 40
-    print(item.width)
-    print(item.height)
+    start_width = 250
+    next_champ = start_width + 138
+    # Items
+    key_champs = list_items[nth_game-1].keys()
+    # print(key_champs)
+    for key_champ in key_champs:
+        if list_items[nth_game-1][key_champ]:
+            for item in list_items[nth_game-1][key_champ]:
+                item_img = Image.open(urllib.request.urlopen('https:' + item))
+                new_size = (37, 37)
+                item_img = item_img.resize(new_size)
+                background.paste(item_img, (start_width, 180))
+                start_width += item_img.width + 5
+            start_width = next_champ
+            next_champ += 138
+        else:
+            print('inside else')
+            start_width = next_champ
+            next_champ += 138
+    print('start_width:' + str(start_width))
+    print('width:' + str(width))
+    print("items")
+    print(item_img.width)
+    print(item_img.height)
 
     # for list in list_items[nth_game - 1]:
     #     # resample=Image.BICUBIC
