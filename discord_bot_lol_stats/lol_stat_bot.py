@@ -1,3 +1,6 @@
+from io import BytesIO
+from PIL import Image
+
 import discord
 from discord.ext import commands
 from discord import File
@@ -163,8 +166,15 @@ async def tft(ctx, *, summoner_name):
     first_half_match.set_thumbnail(url='https:' + profile_tier_img['src'])
     # embed.set_footer(text='Click to load next five games')
 
+
+    empty_embed = discord.Embed(
+        title = embed_title,
+        description = 'The summoner has not played games yet.',
+        colour = discord.Colour.red()
+    )
+
     if not list_placement:
-        await ctx.send(embed=embed)
+        await ctx.send(embed=empty_embed)
         return
     for i in range(0, 5):
         if i < num_games:
