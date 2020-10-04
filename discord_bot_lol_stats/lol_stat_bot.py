@@ -15,24 +15,19 @@ import io
 # from io import BytesIO
 # from PIL import Image
 
-
+TOKEN = 'NzA5MjQzODAzODEwMTM2MDk1.XrjEww.4z-LeMT3ZvcsyeY8nvhni-doZC8'
 
 g_summoner_name = ""
 g_profile_region = "NA"
 
 client = commands.Bot(command_prefix = '.')
+
 client.remove_command('help')
+
 
 @client.event
 async def on_ready():
-    print('Bot is ready')
-    # img = Image.open('C:\\Users\\고경명\\Desktop\\kaisa.png')
-
-
-    # img = ("https://ddragon.leagueoflegends.com/cdn/10.10.3208608/img/item/3040.png")
-    # response = ('https://ddragon.leagueoflegends.com/cdn/10.10.3208608/img/item/3040.png')
-    # synergy1 = Image.open(urllib.request.urlopen('https://cdn.lolchess.gg/images/tft/traiticons-darken/trait_icon_brawler.png'))
-    # synergy2 = Image.open(urllib.request.urlopen('https://cdn.lolchess.gg/images/tft/traiticons-darken/trait_icon_void.png'))
+    print('Bot is online')
 
 @client.event
 async def on_member_join(member):
@@ -42,33 +37,52 @@ async def on_member_join(member):
 async def on_member_remove(member):
     print(f'{member} has left a server.')
 
-# enable multisearch of summoner_names
-@client.command()
-async def echo(*args):
-    output = ''
-    for name in args:
-        output += name
-        output += ' '
-    await client.say(output)
+@client.command(pass_context=True)
+async def help(ctx):
+    author = ctx.message.author
+
+    help_embed = discord.Embed(
+        colour = discord.Colour.orange()
+    )
+
+    help_embed.set_author(name='Commands:')
+    help_embed.add_field(name='.tft {summoner name}', value='ex) .tft Hide on bush\nSelects a summoner to display stats for')
+    help_embed.add_field(name='.match {match #}', value='ex) .match 1\nSelects a match to display its details for')
+    help_embed.add_field(name='.region', value='Current search region set to')
+    help_embed.add_field(name='.region {region name}', value='ex) .region NA\n Selects a server to search the summoner from')
+
+    await ctx.send(embed=help_embed)
+
+
 
 @client.command()
 async def clear(ctx, amount=10):
     await ctx.channel.purge(limit=amount)
     await ctx.send('Message deleted.')
 
+
+# enable multisearch of summoner_names
+# @client.command()
+# async def echo(*args):
+#     output = ''
+#     for name in args:
+#         output += name
+#         output += ' '
+#     await client.say(output)
+
 # private message to user
-@client.command(pass_context=True)
-async def help(ctx):
-    author = ctx.message.author
-
-    embed = discord.Embed(
-        colour = discord.Colour.orange()
-    )
-
-    embed.set_author(name='Help')
-    embed.add_field(name='.tft <summoner name>', value = 'displays recent tft game stats from "lolchess.gg"', inline=False)
-
-    await ctx.author.send(embed=embed)
+# @client.command(pass_context=True)
+# async def help(ctx):
+#     author = ctx.message.author
+#
+#     embed = discord.Embed(
+#         colour = discord.Colour.orange()
+#     )
+#
+#     embed.set_author(name='Help')
+#     embed.add_field(name='.tft <summoner name>', value = 'displays recent tft game stats from "lolchess.gg"', inline=False)
+#
+#     await ctx.author.send(embed=embed)
 
 
 
@@ -89,10 +103,6 @@ async def tft(ctx, *, summoner_name):
     if profile_name == None:
         await ctx.send("Invalid Summoner name!")
     profile_name = profile_name.get_text().strip()
-    # print(profile_name)
-    # print(profile_name.get_text(" "))
-    # profile_name = "".join(profile_name.split())
-    # print(profile_name)
     profile_region = soup.find("em", {"class": "profile__summoner__region"})
     profile_region = profile_region.get_text()
     profile_name = profile_name.replace(f'{profile_region}', "")
@@ -142,14 +152,6 @@ async def tft(ctx, *, summoner_name):
     for age in match_age:
         list_age.append(age.get_text())
 
-    # synergy_div = soup.find_all("div", {"class": "traits"})
-    # print(synergy_div)
-
-    # how to use attachment images (img from local file)
-    # stat = discord.File("C:\\Users\\고경명\\Desktop\\kaisa.png", filename="clicked_stat.png")
-    # embed.set_image(url='attachment://clicked_stat.png')
-    # await ctx.send(file=stat, embed=embed)
-
     # output embed
     embed_title = f'{profile_tier} - {profile_tier_lp}'
     if not profile_tier_lp:
@@ -158,7 +160,7 @@ async def tft(ctx, *, summoner_name):
     # if profile_tier_lp
     first_half_match = discord.Embed(
         title = embed_title,
-        description = 'Five most recent games:',
+        description = 'From most recent matches',
         colour = discord.Colour.blue()
     )
     first_half_match.set_author(name=f'{profile_name}', icon_url='https:' + profile_icon_img['src'])
@@ -167,60 +169,56 @@ async def tft(ctx, *, summoner_name):
     # embed.set_footer(text='Click to load next five games')
 
 
-    empty_embed = discord.Embed(
+    empty_match = discord.Embed(
         title = embed_title,
         description = 'The summoner has not played games yet.',
         colour = discord.Colour.red()
     )
+    empty_match.set_author(name=f'{profile_name}', icon_url='https:' + profile_icon_img['src'])
+
+    # embed.set_image(url='https://ddragon.leagueoflegends.com/cdn/10.10.3208608/img/item/3040.png')
+    empty_match.set_thumbnail(url='https:' + profile_tier_img['src'])
 
     if not list_placement:
-        await ctx.send(embed=empty_embed)
+        await ctx.send(embed=empty_match)
         return
-    for i in range(0, 5):
-        if i < num_games:
-            game_no = str(i+1) + '.'
-            first_half_match.add_field(name='Game #:', value=game_no)
-            first_half_match.add_field(name='Ranked', value=list_placement[i])
-            first_half_match.add_field(name='Mode', value=list_mode[i])
-            first_half_match.add_field(name='Length', value=list_length[i], inline=True)
-            first_half_match.add_field(name='Age', value=list_age[i], inline=True)
 
-    next_half_match = discord.Embed(
-        title = '',
-        description = '',
-        colour = discord.Colour.blue()
-    )
-    for i in range(5, 10):
+    for i in range(0, 10):
         if i < num_games:
-            game_no = str(i+1) + '.'
-            next_half_match.add_field(name='Game #:', value=game_no)
-            next_half_match.add_field(name='Ranked', value=list_placement[i], inline=True)
-            next_half_match.add_field(name='Mode', value=list_mode[i])
-            next_half_match.add_field(name='Length', value=list_length[i], inline=True)
-            next_half_match.add_field(name='Age', value=list_age[i], inline=True)
-    next_half_match.set_thumbnail(url='https:' + profile_icon_img['src'])
+            game_no = str(i+1)
+            match_detail = 'Placement:' + list_placement[i] + list_mode[i]  + list_length[i]  + list_age[i]
+            first_half_match.add_field(name='Match #' + game_no, value=match_detail, inline=False)
+
     await ctx.send(embed=first_half_match)
-    if num_games > 5:
-        await ctx.send(embed=next_half_match)
 
 @client.command()
-async def game(ctx, *, nth_game):
+# aliases=['', '']
+async def match(ctx, *, nth_game):
     global g_summoner_name
+    if nth_game.lower() == 'all':
+        nth_game = 1
+    else:
+        nth_game = int(nth_game)
 
     # if user did not call .tft command beforehand
     if not g_summoner_name:
         await ctx.send('Please call .tft {summoner name} first.')
-    page = requests.get(f'https://lolchess.gg/profile/{g_profile_region}/{g_summoner_name}')
+        return
+    if nth_game > 10:
+        await ctx.send('Out of range!')
+        return
+
+    page = requests.get(f'https://lolchess.gg/profile/{g_profile_region}/{g_summoner_name}/s4')
     soup = BeautifulSoup(page.content, "html.parser")
 
     traits_divs = soup.find_all("div", {"class": "traits"})
     units_divs = soup.find_all("div",{"class": "units"})
 
-    # _div = soup.find_all("div", {"class": "traits"})
-    # traits_div = soup.find_all("div", {"class": "traits"})
-    # traits_div = soup.find_all("div", {"class": "traits"})
-    list_traits, list_stars, list_units = [[] for i in range (10)], [[] for i in range (10)], [[] for i in range (10)]
-    # list_items = [[] for i in range (10)]
+    list_traits = [[] for i in range (10)]
+    list_stars = [[] for i in range (10)]
+    list_units = [[] for i in range (10)]
+    list_trait_title = [[] for i in range (10)]
+    list_unit_title = [[] for i in range (10)]
     list_items = [{} for i in range (10)]
 
     index = 0
@@ -228,32 +226,43 @@ async def game(ctx, *, nth_game):
         trait_imgs = traits.find_all("img")
         for trait_img in trait_imgs:
             list_traits[index].append(trait_img['src'])
+            # Synergy: ~
+            list_trait_title[index].append(trait_img['alt'])
         index += 1
 
+    # Checks if a certain match exist
+    if not list_traits[nth_game-1]:
+        await ctx.send('Match history does not exist!')
+        return
+    else:
+        await ctx.send('Match history DUDUDUNGA soon!')
     index = 0
     for units in units_divs:
         unit_divs = units.find_all("div", {"class": "unit"})
-        # print(unit_divs)
         prev_unit = ""
         dup_count = 1
+
         for unit_profile in unit_divs:
             stars = unit_profile.find_all("img")[0]['src']
             list_stars[index].append(stars)
             unit = unit_profile.find_all("img")[1]['src']
             list_units[index].append(unit)
+
+            # Units: ~
+            unit_names = unit_profile.find_all("img")[1]['alt']
+            list_unit_title[index].append(unit_names)
+
             items_list = unit_profile.find("ul")
             items = items_list.find_all("img")
             temp_item_list = []
             for item in items:
                 if item:
                     temp_item_list.append(item['src'])
-                    # print(item)
-                    # print(index)
+
             # taking care of duplicate units
             print(prev_unit)
             if prev_unit == unit:
                 unit += str(dup_count)
-                # print(unit)
                 list_items[index][unit] = temp_item_list
                 dup_count += 1
                 prev_unit = unit
@@ -261,16 +270,15 @@ async def game(ctx, *, nth_game):
                 list_items[index][unit] = temp_item_list
                 prev_unit = unit
         index += 1
-    # print(list_items)
+
     background = Image.new('RGB', (1650, 256), 0)
     width = 20
     height = 96
     # height = 10
-    nth_game = int(nth_game)
-    if nth_game > 10:
-        await ctx.send('Cannot go beyond 10.')
+
 
     # Synergy
+    await ctx.send('Retrieving synergies...')
     for list in list_traits[nth_game - 1]:
         TRAIT_WIDTH = 34
         TRAIT_HEIGHT = 34
@@ -290,12 +298,11 @@ async def game(ctx, *, nth_game):
             height = 111
             background.paste(synergy, (width, height))
             width += synergy.width + 10
-    # print("synergy")
-    # print(synergy.width)
-    # print(synergy.height)
 
     start_width = 272
+
     # Stars
+    await ctx.send('Retrieving units...')
     for list in list_stars[nth_game - 1]:
         # print(list)
         champ_star = Image.open(urllib.request.urlopen('https:' + list))
@@ -304,33 +311,27 @@ async def game(ctx, *, nth_game):
         champ_star = champ_star.resize(new_size)
         background.paste(champ_star, (start_width, 0))
         start_width += 138
-    # print(list_items)
-    # print("champ_star")
-    # print(champ_star.width)
-    # print(champ_star.height)
+
 
     start_width = 250
+
     for unit_src in list_units[nth_game - 1]:
-        # print(list)
         last_char = len(unit_src) - 1
-        # print(unit_src)
         if unit_src[last_char] != 'g':
             unit_src = unit_src[:-1]
-        # print(unit_src)
         champion = Image.open(urllib.request.urlopen('https:' + unit_src))
         new_size = (128, 128)
         champion = champion.resize(new_size)
         background.paste(champion, (start_width, 30))
         start_width += champion.width + 10
-    # print("champion")
-    # print(champion.width)
-    # print(champion.height)
 
     start_width = 250
     next_champ = start_width + 138
+
     # Items
+    await ctx.send('Retrieving items...')
     key_champs = list_items[nth_game-1].keys()
-    # print(key_champs)
+    print(key_champs)
     for key_champ in key_champs:
         if list_items[nth_game-1][key_champ]:
             for item in list_items[nth_game-1][key_champ]:
@@ -342,38 +343,29 @@ async def game(ctx, *, nth_game):
             start_width = next_champ
             next_champ += 138
         else:
-            # print('inside else')
             start_width = next_champ
             next_champ += 138
+
+    synergy_info = ''
+    for trait in list_trait_title[nth_game-1]:
+        synergy_info += trait + '\t'
+    unit_info = ' '
+    for unit in list_unit_title[nth_game-1]:
+        unit_info += unit + '\t'
+    # print(synergy_info)
     # print('start_width:' + str(start_width))
     # print('width:' + str(width))
     # print("items")
     # print(item_img.width)
     # print(item_img.height)
 
-    # for list in list_items[nth_game - 1]:
-    #     # resample=Image.BICUBIC
-    #     print(list)
-    #     item = Image.open(urllib.request.urlopen('https:' + list))
-    #     background.paste(item, (width, 0))
-    #     width += champion.width
     buffer = io.BytesIO()
     background.save(buffer, format='PNG')
     buffer.seek(0)
-    # champion1 = Image.open(urllib.request.urlopen('https://cdn.lolchess.gg/images/tft/traiticons-darken/trait_icon_brawler.png'))
-    # champion2 = Image.open(urllib.request.urlopen('https://cdn.lolchess.gg/images/tft/traiticons-darken/trait_icon_void.png'))
-    # background.paste(champion1, (0, 0))
-    # background.paste(champion2, (champion1.width, 0))
-    # buffer = io.BytesIO()
-    # background.save(buffer, format='PNG')
-    # buffer.seek(0)
+
     await ctx.send(file=File(buffer, 'nth_game.png'))
+    await ctx.send('Synergy: ' + synergy_info + '\nUnits: ' + unit_info)
         # print(list_units[index])
-
-# @client.command()
-# async def region(ctx):
-#     await ctx.send(f'Current search region: {g_profile_region}')
-
 
 @client.command(aliases=['region', 'r'])
 async def set_region(ctx, *args):
@@ -390,24 +382,6 @@ async def set_region(ctx, *args):
             await ctx.send(f'Search region set to: {g_profile_region}')
             return
     await ctx.send('Invalid region!')
-
-
-
-
-# @client.command()
-# async def region(ctx, *, region):
-#
-#     await ctx.send('')
-
-# change search site, "fow.kr", "na.op.gg", etc.
-# @client.command()
-# async def ping(ctx):
-#     await ctx.send(f'Pressed! {round(client.latency * 1000)}ms')
-#
-# # allows both commands, ".tft", ".test"
-# @client.command(aliases=['dddg', 'test'])
-# async def _8ball(ctx, *, question):
-#     await ctx.send(f'tft or test: {question}')
 
 
 
