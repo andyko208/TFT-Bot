@@ -16,7 +16,7 @@ import io
 # 9/23 enable multisearch
 
 # 10/26 incorporate pypy to run the program faster
-TOKEN = 'NzA5MjQzODAzODEwMTM2MDk1.XrjEww.9QX2xNZaOsV2HpYXHe_BwCrxRCI'
+TOKEN = 'NzA5MjQzODAzODEwMTM2MDk1.XrjEww.MH6Zcmj8Ewz66pUCTC5UIwPfwdM'
 
 g_summoner_name = ""
 g_profile_region = "NA"
