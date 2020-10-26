@@ -12,10 +12,11 @@ from PIL import Image
 import urllib.request
 
 import io
-# from io import BytesIO
-# from PIL import Image
 
-TOKEN = 'NzA5MjQzODAzODEwMTM2MDk1.XrjEww.4z-LeMT3ZvcsyeY8nvhni-doZC8'
+# 9/23 enable multisearch
+
+# 10/26 incorporate pypy to run the program faster
+TOKEN = 'NzA5MjQzODAzODEwMTM2MDk1.XrjEww.9QX2xNZaOsV2HpYXHe_BwCrxRCI'
 
 g_summoner_name = ""
 g_profile_region = "NA"
@@ -60,7 +61,7 @@ async def clear(ctx, amount=10):
     await ctx.channel.purge(limit=amount)
     await ctx.send('Message deleted.')
 
-
+# 9/23
 # enable multisearch of summoner_names
 # @client.command()
 # async def echo(*args):
@@ -186,8 +187,14 @@ async def tft(ctx, *, summoner_name):
     for i in range(0, 10):
         if i < num_games:
             game_no = str(i+1)
+            # print("list_placement:")
+            # print(list_placement[i])
+            # print("list_mode:")
+            # print(list_mode[i])
+            # print("list_age:")
+            # print(list_mode[i])
             match_detail = 'Placement:' + list_placement[i] + list_mode[i]  + list_length[i]  + list_age[i]
-            first_half_match.add_field(name='Match #' + game_no, value=match_detail, inline=False)
+            first_half_match.add_field(name='Match #' + game_no, value=match_detail, inline=True)
 
     await ctx.send(embed=first_half_match)
 
