@@ -2,7 +2,7 @@
 
 TFT Bot is a bot that will enable sharing recent matches of a TFT game mode from a player
 
-![Manaflux Main Page](/imgs/command_ex.png "Commands")
+![Main_match](/imgs/match.png ".match")
 
 ## Features
 
@@ -15,7 +15,10 @@ https://discord.com/api/oauth2/authorize?client_id=709243803810136095&permission
 
 ## Commands
 
-![Manaflux Main Page](/imgs/help.png "Main")
+![Main_help](/imgs/help.png ".help")
+
+![Main_help](/imgs/help.png ".tft")
+
 
 ## Built with
 - Python
