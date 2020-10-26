@@ -15,9 +15,17 @@ https://discord.com/api/oauth2/authorize?client_id=709243803810136095&permission
 
 ## Commands
 
-![Main_help](/imgs/.help.png ".help")
+.tft
+
+
 
 ![Main_help](/imgs/.tft.png ".tft")
+
+
+.help
+
+
+![Main_help](/imgs/.help.png ".help")
 
 
 ## Built with
